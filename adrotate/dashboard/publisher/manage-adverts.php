@@ -1,0 +1,165 @@
+<?php
+/* ------------------------------------------------------------------------------------
+*  COPYRIGHT AND TRADEMARK NOTICE
+*  Copyright 2008-2025 Arnan de Gans. All Rights Reserved.
+*  ADROTATE is a registered trademark of Arnan de Gans.
+
+*  COPYRIGHT NOTICES AND ALL THE COMMENTS SHOULD REMAIN INTACT.
+*  By using this code you agree to indemnify Arnan de Gans from any
+*  liability that might arise from its use.
+------------------------------------------------------------------------------------ */
+
+$banners = $wpdb->get_results("SELECT `id`, `title`, `type`, `tracker`, `weight` FROM `{$wpdb->prefix}adrotate` WHERE (`type` != 'empty' OR `type` != 'a_empty' OR `type` != 'queue') ORDER BY `id` ASC;");
+
+$active = $disabled = $error = array();
+foreach($banners as $banner) {
+	$title = (strlen($banner->title) == 0) ? 'Advert '.$banner->id.' [temp]' : $banner->title;
+
+	$starttime = $stoptime = 0;
+	$starttime = $wpdb->get_var("SELECT `starttime` FROM `{$wpdb->prefix}adrotate_schedule`, `{$wpdb->prefix}adrotate_linkmeta` WHERE `ad` = '{$banner->id}' AND `schedule` = `{$wpdb->prefix}adrotate_schedule`.`id` ORDER BY `starttime` ASC LIMIT 1;");
+	$stoptime = $wpdb->get_var("SELECT `stoptime` FROM `{$wpdb->prefix}adrotate_schedule`, `{$wpdb->prefix}adrotate_linkmeta` WHERE `ad` = '{$banner->id}' AND `schedule` = `{$wpdb->prefix}adrotate_schedule`.`id` ORDER BY `stoptime` DESC LIMIT 1;");
+
+	$type = $banner->type;
+	if($type == 'active' AND $stoptime <= $in7days) $type = '7days';
+	if($type == 'active' AND $stoptime <= $in2days) $type = '2days';
+	if($type == 'active' AND $stoptime <= $now) $type = 'expired';
+
+	if($type == 'active' OR $type == '7days') {
+		$active[$banner->id] = array(
+			'id' => $banner->id,
+			'title' => $title,
+			'type' => $type,
+			'tracker' => $banner->tracker,
+			'weight' => $banner->weight,
+			'firstactive' => $starttime,
+			'lastactive' => $stoptime
+		);
+	}
+
+	if($type == 'error' OR $type == 'expired' OR $type == '2days') {
+		$error[$banner->id] = array(
+			'id' => $banner->id,
+			'title' => $title,
+			'type' => $type,
+			'tracker' => $banner->tracker,
+			'weight' => $banner->weight,
+			'firstactive' => $starttime,
+			'lastactive' => $stoptime
+		);
+	}
+
+	if($type == 'disabled') {
+		$disabled[$banner->id] = array(
+			'id' => $banner->id,
+			'title' => $title,
+			'type' => $banner->type,
+			'tracker' => $banner->tracker,
+			'weight' => $banner->weight,
+			'firstactive' => $starttime,
+			'lastactive' => $stoptime
+		);
+	}
+	
+	unset($banner, $title, $starttime, $stoptime, $type);
+}
+
+unset($allbanners);
+?>
+
+<?php 
+// Load dashboard part for ads with errors	
+if(count($error) > 0) include(plugin_dir_path(__FILE__).'manage-adverts-error.php');
+?>
+
+<h3><?php _e("Active Adverts", 'adrotate'); ?></h3>
+
+<form name="banners" id="post" method="post" action="admin.php?page=adrotate">
+	<?php wp_nonce_field('adrotate_bulk_ads_active','adrotate_nonce'); ?>
+
+	<div class="tablenav top">
+		<div class="alignleft actions">
+			<select name="adrotate_action" id="cat" class="postform">
+		        <option value=""><?php _e("Bulk Actions", 'adrotate'); ?></option>
+		        <option value="deactivate"><?php _e("Deactivate", 'adrotate'); ?></option>
+		        <option value="delete"><?php _e("Delete", 'adrotate'); ?></option>
+		        <option value="reset"><?php _e("Reset stats", 'adrotate'); ?></option>
+		        <option value="" disabled><?php _e("-- Renew --", 'adrotate'); ?></option>
+		        <option value="renew-31536000"><?php _e("For 1 year", 'adrotate'); ?></option>
+		        <option value="renew-5184000"><?php _e("For 180 days", 'adrotate'); ?></option>
+		        <option value="renew-2592000"><?php _e("For 30 days", 'adrotate'); ?></option>
+		        <option value="renew-604800"><?php _e("For 7 days", 'adrotate'); ?></option>
+			</select> <input type="submit" id="post-action-submit" name="adrotate_action_submit" value="<?php _e("Go", 'adrotate'); ?>" class="button-secondary" />
+		</div>	
+		<br class="clear" />
+	</div>
+
+	<table class="widefat manage-ads-main" style="margin-top: .5em">
+		<thead>
+		<tr>
+			<td scope="col" class="manage-column column-cb check-column"><input type="checkbox" /></td>
+			<th width="2%"><center><?php _e("ID", 'adrotate'); ?></center></th>
+			<th width="15%"><?php _e("Start / End", 'adrotate'); ?></th>
+			<th><?php _e("Name", 'adrotate'); ?></th>
+			<?php if($adrotate_config['stats'] == 1) { ?>
+				<th width="5%"><center><?php _e("Shown", 'adrotate'); ?></center></th>
+				<th width="5%"><center><?php _e("Today", 'adrotate'); ?></center></th>
+				<th width="5%"><center><?php _e("Clicks", 'adrotate'); ?></center></th>
+				<th width="5%"><center><?php _e("Today", 'adrotate'); ?></center></th>
+				<th width="7%"><center><?php _e("CTR", 'adrotate'); ?></center></th>
+			<?php } ?>
+		</tr>
+		</thead>
+		<tbody>
+	<?php
+	if (count($active) > 0) {
+		$class = '';
+		foreach($active as $banner) {
+			if($adrotate_config['stats'] == 1 AND $banner['tracker'] == 'Y') {
+				$stats = adrotate_stats($banner['id']);
+				$stats_today = adrotate_stats($banner['id'], $today);
+				$ctr = adrotate_ctr($stats['clicks'], $stats['impressions']);						
+			}
+
+			$grouplist = adrotate_ad_is_in_groups($banner['id']);
+			$class = ($class != 'alternate') ? 'alternate' : '';
+			?>
+		    <tr id='adrotateindex' class='<?php echo $class; ?>'>
+				<th class="check-column"><input type="checkbox" name="bannercheck[]" value="<?php echo $banner['id']; ?>" /></th>
+				<td><center><?php echo $banner['id'];?></center></td>
+				<td><?php echo date_i18n("F d, Y", $banner['firstactive']);?><br /><span style="color: <?php echo adrotate_prepare_color($banner['lastactive']);?>;"><?php echo date_i18n("F d, Y", $banner['lastactive']);?></span></td>
+				<td><strong><a class="row-title" href="<?php echo admin_url('/admin.php?page=adrotate&view=edit&ad='.$banner['id']);?>" title="<?php _e("Edit", 'adrotate'); ?>"><?php echo stripslashes($banner['title']);?></a></strong> <?php if($adrotate_config['stats'] == 1 AND $banner['tracker'] == 'Y') { ?>- <a href="<?php echo admin_url('/admin.php?page=adrotate-statistics&view=advert&id='.$banner['id']);?>" title="<?php _e("Stats", 'adrotate'); ?>"><?php _e("Stats", 'adrotate'); ?></a><?php } ?><span style="color:#999;"><?php if(strlen($grouplist) > 0) echo "<br /><span style=\"font-weight:bold;\">".__("Groups:", 'adrotate')."</span> ".$grouplist; ?></span></td>
+				<?php if($adrotate_config['stats'] == 1) { ?>
+					<?php if($banner['tracker'] == 'Y') { ?>
+					<td><center><?php echo $stats['impressions']; ?></center></td>
+					<td><center><?php echo $stats_today['impressions']; ?></center></td>
+					<td><center><?php echo $stats['clicks']; ?></center></td>
+					<td><center><?php echo $stats_today['clicks']; ?></center></td>
+					<td><center><?php echo $ctr; ?> %</center></td>
+					<?php } else { ?>
+					<td><center>&hellip;</center></td>
+					<td><center>&hellip;</center></td>
+					<td><center>&hellip;</center></td>
+					<td><center>&hellip;</center></td>
+					<td><center>&hellip;</center></td>
+					<?php } ?>
+				<?php } ?>
+			</tr>
+		<?php 
+			unset($banner, $stats, $stats_today, $ctr, $grouplist);
+		} 
+		?>
+	<?php } else { ?>
+		<tr id='no-groups'>
+			<th class="check-column">&nbsp;</th>
+			<td colspan="<?php echo ($adrotate_config['stats'] == 1) ? '10' : '5'; ?>"><em><?php _e("No adverts created yet!", 'adrotate'); ?></em></td>
+		</tr>
+	<?php } ?>
+	</tbody>
+	</table>
+
+</form>
+
+<?php 
+// Load dashboard part for disabled ads
+if(count($disabled) > 0) include(plugin_dir_path(__FILE__).'manage-adverts-disabled.php');
+?>
