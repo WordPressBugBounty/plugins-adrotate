@@ -1,7 +1,7 @@
 <?php
 /* ------------------------------------------------------------------------------------
 *  COPYRIGHT AND TRADEMARK NOTICE
-*  Copyright 2008-2025 Arnan de Gans. All Rights Reserved.
+*  Copyright 2008-2026 Arnan de Gans. All Rights Reserved.
 *  ADROTATE is a registered trademark of Arnan de Gans.
 
 *  COPYRIGHT NOTICES AND ALL THE COMMENTS SHOULD REMAIN INTACT.
@@ -96,7 +96,7 @@ class adrotate_widgets extends WP_Widget {
 	 Purpose:   Save the widget options per instance
 	-------------------------------------------------------------*/
 	public function update($new_instance, $old_instance) {
-		$new_instance['title'] = sanitize_title($new_instance['title']);
+		$new_instance['title'] = sanitize_text_field($new_instance['title']);
 		$new_instance['type'] = sanitize_text_field($new_instance['type']);
 		$new_instance['siteid'] = sanitize_key($new_instance['siteid']);
 		

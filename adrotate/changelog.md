@@ -1,4 +1,48 @@
-# AdRotate Banner Manager full changelog
+# AdRotate Banner Manager changelog
+
+## 5.17.2 - December 26, 2025
+* New - Support for the GooseUp Update Plugin
+* Fix - Missing ads.txt setting when activating the plugin
+* Added - Meta links
+* Removed - Action links
+* Change - i18n is now in the 'languages' folder
+
+## 5.17.1 - December 11, 2025
+* Fix - Better check if banners folder exist
+* Change - Internal RSS feed fetcher for one url at a time
+* i18n - Removed all outdated translations strings
+
+## 5.17 - November 27, 2025
+* Update - Dashboard now works better on smaller devices (responsive)
+* Update - Improved portability hash generation
+* Update - All dashboard settings pages fine-tuned
+* Update - Support and AdRotate Pro dashboard pages refreshed
+* Update - Removed unused CSS from dashboard.css
+* Fix - Removed remaining multisite code causing warnings/errors for some people
+* Fix - Removed unused licensing code from the support form
+
+## 5.16.1 - November 24, 2025
+* Fix - Database version discrepency with AdRotate Pro
+
+## 5.16 - November 3, 2025
+* Performance - Faster queries for loading certain stats
+* Performance - Added faster INDEX for stats and stats_archive tables
+* Change - Database version 75
+* Change - Moved action links to plugin meta text
+* Fix - Widget title no longer converts to a slug
+* Update - All dashboard settings pages refreshed
+* Update - Support dashboard page refreshed
+* Update - Notification texts and footer banner
+* Update - Block code
+
+## 5.15.4 - October 19, 2025
+* Fix - AdRotate Pro banner showing on too many dashboard pages
+* Change - AdRotate Pro banner showing less often
+
+## 5.15.3 - October 7, 2025
+* Fix - Removed unreliable/broken WordPress redirect when activating the plugin
+* Fix - Wrong function name in uninstall routine
+* Update - Links to statistics manuals
 
 ## 5.15.2 - September 24, 2025
 * Update - Activation/de-activation/uninstall routine

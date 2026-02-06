@@ -1,14 +1,14 @@
-=== AdRotate Banner Manager - The only ad manager you'll need ===
+=== AdRotate Banner Manager ===
 Contributors: adegans
-Stable tag: 5.15.2
+Stable tag: 5.17.2
 Requires at least: 4.9
-Tested up to: 6.8.2
-Requires PHP: 7.4
-Donate link: https://ajdg.solutions/product/adrotate-pro-single/
-Tags: ads, ad manager, adsense, amazon, monetize
+Tested up to: 6.9
+Requires PHP: 8.0
+Donate link: https://www.arnan.me/donate/
+Tags: ads, ad manager, adsense, banner, monetize
 License: GPLv3
 
-Advertising made easy. Manage all your ads including Google Ads, Amazon banners and many more from your dashboard.
+Everything you need to manage all your ads, banners and affiliate links while keeping things simple. Advertising made easy. 
 
 == Description ==
 
@@ -48,7 +48,7 @@ As a result **AdRotate Banner Manager** is trusted by tens of thousands of busin
 * Place affiliate banners from websites like Amazon affiliates, Booking.com, Agoda, Tradedoubler and many more
 * Create Groups of adverts to show one or many ads in one location
 * Upload banner images through the WordPress media manager or the AdRotate Asset Dashboard
-* And much much more...
+* And much much more…
 
 = Showing your adverts anywhere on your WordPress website =
 
@@ -95,39 +95,83 @@ Available AdRotate Pro licenses [1 site license](https://ajdg.solutions/product/
 == Installation ==
 
 Installing AdRotate is super easy.
-- Search for "AdRotate Arnan" or "AdRotate" in your plugin dashboard and click on the "Install" button for **AdRotate Banner Manager**.
-- A new menu called "AdRotate" appears in the WordPress navigation.
-- From this menu you'll handle everything related to **AdRotate Banner Manager**.
+– Search for "AdRotate Arnan" or "AdRotate" in your plugin dashboard and click on the "Install" button for **AdRotate Banner Manager**.
+– A new menu called "AdRotate" appears in the WordPress navigation.
+– From this menu you'll handle everything related to **AdRotate Banner Manager**.
 
 For more detailed instructions check out the [installation steps](https://support.ajdg.net/knowledgebase.php?article=5) on the AdRotate website.
 
 == Changelog ==
 
-**5.15.2 - September 24, 2025**
-* Update - Activation/de-activation/uninstall routine
+**5.17.2 - December 26, 2025**
+* New - Support for the GooseUp Update Plugin
+* Fix - Missing ads.txt setting when activating the plugin
+* Added - Meta links
+* Removed - Action links
+* Change - i18n is now in the 'languages' folder
 
-**5.15.1 - August 22, 2025**
-* Fix - Output warning when activating the plugin for the first time
+**5.17.1 - December 11, 2025**
+* Fix - Better check if banners folder exist
+* Change - Internal RSS feed fetcher for one url at a time
+* i18n - Removed all outdated translations strings
 
-**5.15 - August 11, 2025**
-* Performance - No more redundant queries when using any Manage Adverts dashboard
-* Performance - Code cleanup for group editing
-* Change - Reworked the Manage Adverts loading code for a massive speed increase on larger sites
-* Change - Reworked the Manage Groups loading code for more uniform code
-* Removed - Unused goosebox.js file
+**5.17 - November 27, 2025**
+* Update - Dashboard now works better on smaller devices (responsive)
+* Update - Improved portability hash generation
+* Update - All dashboard settings pages fine-tuned
+* Update - Support and AdRotate Pro dashboard pages refreshed
+* Update - Removed unused CSS from dashboard.css
+* Fix - Removed remaining multisite code causing warnings/errors for some people
+* Fix - Removed unused licensing code from the support form
 
-**5.14.1 - August 5, 2025**
-* update - Simplified de-activation code
-* update - Simplified uninstall code
-* update - Revised footer credits
-* update - Revised 'AdRotate Pro' page
-* removed - Birthday banner
-* removed - Review banner
+**5.16.1 - November 24, 2025**
+* Fix - Database discrepency with AdRotate Pro
 
-**5.14 - Jun 7, 2025**
-* fix - XSS security flaw when saving widgets
-* fix - Warning for widget type not being set when adding more widgets
-* update - Improved widget saving code and formatting
+**5.16 - November 3, 2025**
+* Performance - Faster queries for loading certain stats
+* Performance - Added faster INDEX for stats and stats_archive tables
+* Change - Database version 75
+* Change - Moved action links to plugin meta text
+* Fix - Widget title no longer converts to a slug
+* Update - All dashboard settings pages refreshed
+* Update - Support dashboard page refreshed
+* Update - Notification texts and footer banner
+* Update - Block code
+
+**5.15.4 - October 19, 2025**
+* Fix - AdRotate Pro banner showing on too many dashboard pages
+* Change - AdRotate Pro banner showing less often
+
+**5.15.3 - October 7, 2025**
+* Fix - Removed unreliable/broken WordPress redirect when activating the plugin
+* Fix - Wrong function name in uninstall routine
+* Update - Links to statistics manuals
+
+**5.15.2 – September 24, 2025**
+* Update – Activation/de-activation/uninstall routine
+
+**5.15.1 – August 22, 2025**
+* Fix – Output warning when activating the plugin for the first time
+
+**5.15 – August 11, 2025**
+* Performance – No more redundant queries when using any Manage Adverts dashboard
+* Performance – Code cleanup for group editing
+* Change – Reworked the Manage Adverts loading code for a massive speed increase on larger sites
+* Change – Reworked the Manage Groups loading code for more uniform code
+* Removed – Unused goosebox.js file
+
+**5.14.1 – August 5, 2025**
+* update – Simplified de-activation code
+* update – Simplified uninstall code
+* update – Revised footer credits
+* update – Revised 'AdRotate Pro' page
+* removed – Birthday banner
+* removed – Review banner
+
+**5.14 – Jun 7, 2025**
+* fix – XSS security flaw when saving widgets
+* fix – Warning for widget type not being set when adding more widgets
+* update – Improved widget saving code and formatting
 
 Be a Pro and get [AdRotate Professional](https://ajdg.solutions/product-category/adrotate-pro/) to support the plugin and get more features!
 
@@ -138,7 +182,7 @@ Enjoy this update with the latest tweaks and improvements for AdRotate Banner Ma
 == Frequently Asked Questions ==
 
 = How do I use AdRotate? =
-Take a look at the [user guides](https://support.ajdg.net/knowledgebase.php?category=3).
+Take a look at the various [user guides](https://support.ajdg.net/knowledgebase.php?category=3).
 You can also post your questions on the [forum](https://wordpress.org/support/plugin/adrotate/).
 
 = I need help with this plugin =
@@ -160,7 +204,7 @@ Yep, check out my website [AJdG Solutions](https://ajdg.solutions/)
 
 = Why do some dashboard notifications look so ugly =
 If a dashboard notification misses its layout or looks out of shape try clearing your browser cache.
-Some ad blockers block parts of the AdRotate dashboard, check out this page to make an exception for your website in adblockers - [Whitelist your site](https://support.ajdg.net/knowledgebase.php?article=45).
+Some ad blockers block parts of the AdRotate dashboard, check out this page to make an exception for your website in adblockers – [Whitelist your site](https://support.ajdg.net/knowledgebase.php?article=45).
 
 = Is AdRotate compatible with Yoast SEO or other SEO plugins? =
 Yes, Yoast SEO, All-in-One SEO pack and all other SEO plugins work fine with AdRotate.

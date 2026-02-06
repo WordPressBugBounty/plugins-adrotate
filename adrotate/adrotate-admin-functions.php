@@ -1,7 +1,7 @@
 <?php
 /* ------------------------------------------------------------------------------------
 *  COPYRIGHT AND TRADEMARK NOTICE
-*  Copyright 2008-2025 Arnan de Gans. All Rights Reserved.
+*  Copyright 2008-2026 Arnan de Gans. All Rights Reserved.
 *  ADROTATE is a registered trademark of Arnan de Gans.
 
 *  COPYRIGHT NOTICES AND ALL THE COMMENTS SHOULD REMAIN INTACT.
@@ -17,12 +17,54 @@ function adrotate_rand($length = 8) {
 	$available_chars = 'abcdefghijklmnopqrstuvwxyz';
 
 	$result = '';
-	$size = strlen($available_chars);
 	for($i = 0; $i < $length; $i++) {
-		$result .= $available_chars[rand(0, $size - 1)];
+		$result .= $available_chars[mt_rand(0, 25)];
 	}
 
 	return $result;
+}
+
+/*-------------------------------------------------------------
+ Name:      adrotate_fetch_rss_feed
+ Purpose:   Load RSS feeds to show in the AdRotate dashboard.
+-------------------------------------------------------------*/
+function adrotate_fetch_rss_feed($url = '', $show_items = 6) {
+	// Check for errors
+	if(!is_numeric($show_items) OR $show_items < 1 OR $show_items > 20) {
+		$show_items = 6;
+	}
+
+	$rss = fetch_feed($url);
+
+	if(is_wp_error($rss)) {
+		$feed_output = '<p>' . __('The feed could not be fetched.') . '</p>';
+	} else if(!$rss->get_item_quantity()) {
+		$feed_output = '<p>' . __('The feed has no items or could not be read.') . '</p>';
+	} else {		
+		// Prepare output
+		$feed_output = '<ul>';
+		foreach($rss->get_items(0, $show_items) as $item) {
+			$link = $item->get_link();
+
+			while(!empty($link) AND stristr($link, 'http') !== $link) {
+				$link = substr($link, 1);
+			}
+
+			$link = esc_url(strip_tags($link));
+			$title = esc_html(trim(strip_tags($item->get_title())));
+			$date = $item->get_date('U');
+
+			if(empty($title)) $title = __('Untitled');
+			if($date) $date = ' <span class="rss-date">'.date_i18n(get_option('date_format'), $date).'</span>';
+
+			$feed_output .= (empty($link)) ? "<li>$title<br /><em>{$date}</em></li>" : "<li><a class='rsswidget' href='$link'>$title</a><br /><em>{$date}</em></li>";
+		}
+		$feed_output .= '</ul>';
+	}
+	unset($rss);
+
+	// Done!
+	return $feed_output;
 }
 
 /*-------------------------------------------------------------
@@ -154,6 +196,9 @@ function adrotate_evaluate_ads() {
 		}
 		unset($ad);
 	}
+
+	// Delete unfinished ads
+	$wpdb->query("DELETE FROM `{$wpdb->prefix}adrotate` WHERE `type` = 'empty' OR `type` = 'a_empty' OR `type` = 'generator';");
 
 	$result = array('error' => $error, 'limit' => $limit, 'expired' => $expired, 'expiressoon' => $expiressoon, 'expiresweek' => $expiresweek, 'normal' => $normal, 'unknown' => $unknown);
 	update_option('adrotate_advert_status', $result);
@@ -356,20 +401,23 @@ function adrotate_notifications_dashboard() {
 	if(current_user_can('adrotate_ad_manage')) {
 		$page = (isset($_GET['page'])) ? $_GET['page'] : '';
 
-		if(isset($_GET['hide']) AND $_GET['hide'] == 0) update_option('adrotate_hide_getpro', current_time('timestamp') + (2 * MONTH_IN_SECONDS));
-
-		// Get AdRotate Pro
-		$getpro_banner = get_option('adrotate_hide_getpro');
-		if($getpro_banner < current_time('timestamp')) {
-			echo "<div class=\"ajdg-notification notice\">";
-			echo "	<div class=\"ajdg-notification-logo\" style=\"background-image: url('".plugins_url('/images/notification.png', __FILE__)."');\"><span></span></div>";
-			echo "	<div class=\"ajdg-notification-message\">Hello <strong>".ucfirst($displayname)."</strong>. Have you considered upgrading to <strong>AdRotate Professional</strong> yet?<br />Get features such as Geo Targeting, Advanced Scheduling, Mobile Adverts, Advanced Post Injection, access to ticket support and much more...<br />";
-			echo " Use coupon code <strong>GETADROTATEPRO</strong> to get a 10% discount on any <strong>AdRotate Professional</strong> license!</div>";
-			echo "	<div class=\"ajdg-notification-cta\">";
-			echo "		<a href=\"".admin_url('admin.php?page=adrotate-pro')."\" class=\"ajdg-notification-act button-primary\">MORE INFORMATION</a>";
-			echo "		<a href=\"".admin_url('admin.php?page=adrotate')."&hide=0\" class=\"ajdg-notification-dismiss\">Maybe later</a>";
-			echo "	</div>";
-			echo "</div>";
+		// Only show on AdRotate pages
+		if(strpos($page, 'adrotate') !== false) {
+			if(isset($_GET['hide']) AND $_GET['hide'] == 0) update_option('adrotate_hide_getpro', current_time('timestamp') + (3 * MONTH_IN_SECONDS));
+	
+			// Get AdRotate Pro
+			$getpro_banner = get_option('adrotate_hide_getpro');
+			if($getpro_banner < current_time('timestamp')) {
+				echo "<div class=\"ajdg-notification notice\">";
+				echo "	<div class=\"ajdg-notification-logo\" style=\"background-image: url('".plugins_url('/images/notification.png', __FILE__)."');\"><span></span></div>";
+				echo "	<div class=\"ajdg-notification-message\">Hello <strong>".ucfirst($displayname)."</strong>. Have you considered upgrading to <strong>AdRotate Professional</strong> yet?<br />Get features such as Geo Targeting, Advanced Scheduling, Mobile Adverts, Advanced Post Injection, access to ticket support and much more...<br />";
+				echo " Use coupon code <strong>GETADROTATEPRO</strong> to get a 10% discount on any <strong>AdRotate Professional</strong> license!</div>";
+				echo "	<div class=\"ajdg-notification-cta\">";
+				echo "		<a href=\"".admin_url('admin.php?page=adrotate-pro')."\" class=\"ajdg-notification-act button-primary\">MORE INFORMATION</a>";
+				echo "		<a href=\"".admin_url('admin.php?page=adrotate')."&hide=0\" class=\"ajdg-notification-dismiss\">Maybe later</a>";
+				echo "	</div>";
+				echo "</div>";
+			}
 		}
 
 		// Advert notifications, errors, important stuff
@@ -401,7 +449,7 @@ function adrotate_notifications_dashboard() {
 			// Thank user for updating
 			echo "<div class=\"ajdg-notification notice\">";
 			echo "	<div class=\"ajdg-notification-logo\" style=\"background-image:url('".plugins_url('/images/notification.png', __FILE__)."');\"><span></span></div>";
-			echo "	<div class=\"ajdg-notification-message\">Hi there <strong>".$displayname."</strong>! You have just updated <strong>AdRotate Professional</strong> to version <strong>".$plugin_version."</strong>!<br />Thanks for staying up-to-date! Your <strong>Database and settings</strong> have been updated to the latest version.<br />For an overview of what has changed take a look at the <a href=\"https://ajdg.solutions/support/adrotate-development/?mtm_campaign=adrotate&mtm_keyword=finish_update_notification\" target=\"_blank\">development page</a> and usually there is an article on <a href=\"https://ajdg.solutions/blog/\" target=\"_blank\">the blog</a> with more information as well.</div>";
+			echo "	<div class=\"ajdg-notification-message\">Hello <strong>".$displayname."</strong>! You have just updated <strong>AdRotate Banner Manager</strong> to version <strong>".$plugin_version."</strong>!<br />Thanks for staying up-to-date! Your <strong>Database and settings</strong> have been updated to the latest version.<br />For an overview of what has changed you can take a look at the <a href=\"https://ajdg.solutions/blog/\" target=\"_blank\">recent blog post</a> on my website.</div>";
 			echo "</div>";
 		}
 	}
@@ -411,7 +459,7 @@ function adrotate_notifications_dashboard() {
  Name:      adrotate_dropdown_folder_contents
  Purpose:   List folder contents for dropdown menu
 -------------------------------------------------------------*/
-function adrotate_dropdown_folder_contents($base_dir, $extensions = array('jpg', 'jpeg', 'gif', 'png', 'html', 'htm', 'js'), $max_level = 1, $level = 0, $parent = '') {
+function adrotate_dropdown_folder_contents($base_dir, $extensions = array('jpg', 'jpeg', 'gif', 'png', 'webp', 'html', 'htm', 'js'), $max_level = 1, $level = 0, $parent = '') {
 	$index = array();
 
 	// List the folders and files
@@ -469,7 +517,7 @@ function adrotate_mediapage_folder_contents($asset_folder, $level = 1) {
 
 	    if(count($assets) > 0) {
 			$new_level = $level + 1;
-			$extensions = array('jpg', 'jpeg', 'gif', 'png', 'svg', 'swf', 'flv', 'html', 'htm', 'js');
+			$extensions = array('jpg', 'jpeg', 'gif', 'png', 'webp', 'html', 'htm', 'js');
 
 			foreach($assets as $key => $asset) {
 				$fileinfo = pathinfo($asset);
@@ -569,62 +617,17 @@ function adrotate_unlink($asset, $path = '') {
 }
 
 /*-------------------------------------------------------------
- Name:      adrotate_action_links
- Purpose:	Plugin page link
+ Name:      adrotate_meta_links
+ Purpose:	Extra links on the plugins dashboard page
 -------------------------------------------------------------*/
-function adrotate_action_links($links) {
-	$extra_links = array();
-	$extra_links['ajdg-adrotate-pro'] = sprintf('<a href="%s" target="_blank">%s</a>', 'https://ajdg.solutions/cart/?add-to-cart=1124', '<strong>Get AdRotate Pro</strong>');
-	$extra_links['ajdg-adrotate-help'] = sprintf('<a href="%s" target="_blank">%s</a>', 'https://support.ajdg.net/knowledgebase.php', 'Plugin support');
-	$extra_links['ajdg-adrotate-more'] = sprintf('<a href="%s" target="_blank">%s</a>', 'https://ajdg.solutions/plugins/', 'More plugins');
+function adrotate_meta_links($links, $file) {
+	if($file !== 'adrotate/adrotate.php' ) return $links;
 
-	return array_merge($extra_links, $links);
-}
+	$links['ajdg-pro'] = sprintf('<a href="%s" target="_blank">%s</a>', 'https://ajdg.solutions/cart/?add-to-cart=1124', '<strong>Get AdRotate Pro</strong>');
+	$links['ajdg-help'] = sprintf('<a href="%s" target="_blank">%s</a>', 'https://support.ajdg.net/knowledgebase.php', 'Plugin support');
+	$links['ajdg-more'] = sprintf('<a href="%s" target="_blank">%s</a>', 'https://ajdg.solutions/plugins/', 'More plugins');
 
-/*-------------------------------------------------------------
- Name:      adrotate_credits
- Purpose:   Promotional stuff shown throughout the plugin
--------------------------------------------------------------*/
-function adrotate_credits() {
-	echo "<table class=\"widefat\" style=\"margin-top: 2em\">";
-
-	echo "<thead>";
-	echo "<tr valign=\"top\">";
-	echo "	<th width=\"70%\"><strong>".__("Get more features with AdRotate Professional", 'adrotate')."</strong></th>";
-	echo "	<th><strong>".__("Starting at only &euro; 49.00", 'adrotate')." - <a href=\"https://ajdg.solutions/product-category/adrotate-pro/\" target=\"_blank\">".__("Compare Licenses", 'adrotate')." &raquo;</a></strong></th>";
-	echo "</tr>";
-	echo "</thead>";
-
-	echo "<tbody>";
-	echo "<tr>";
-
-	echo "<td><a href=\"https://ajdg.solutions/plugins/adrotate-for-wordpress/\" target=\"_blank\"><img src=\"".plugins_url('/images/logo-60x60.png', __FILE__)."\" class=\"alignleft pro-image\" /></a><p>".__("<strong>AdRotate Professional</strong> has a lot more to offer for even better advertising management and premium support. Enjoy features like <strong>Geo Targeting</strong>, <strong>multiple Schedules</strong> per ad and <strong>Schedules</strong> have more options, more advanced <strong>Post Injection</strong> and much more. Check out the feature comparison tab on any of the product pages to see what AdRotate Pro has to offer for you! When you upgrade to <strong>AdRotate Professional</strong> make sure you use coupon <strong>GETADROTATEPRO</strong> on checkout for 10 percent off on any license.", 'adrotate')." <a href=\"https://ajdg.solutions/product-category/adrotate-pro/\" target=\"_blank\">".__("Compare Licenses", 'adrotate')." &raquo;</a></p></td>";
-
-	echo "<td><p><a href=\"https://ajdg.solutions/product/adrotate-pro-single/\" target=\"_blank\"><strong>".__("Get a Single site License", 'adrotate')."</strong></a><br /><em>".__("One year of updates for AdRotate Professional.", 'adrotate')."</em></p>"."<p><a href=\"https://ajdg.solutions/product/adrotate-pro-multi/\" target=\"_blank\"><strong>".__("Go big with the Multi License", 'adrotate')."</strong></a><br /><em>".__("One year of updates for up-to twenty activations.", 'adrotate')."</em></p></td>";
-
-	echo "</tr>";
-
-	echo "</tbody>";
-	echo "</table>";
-	echo "<table class=\"widefat\" style=\"margin-top: 2em\">";
-
-	echo "<thead>";
-	echo "<tr valign=\"top\">";
-	echo "	<th width=\"50%\"><strong>".__("Do you have a question?", 'adrotate')."</strong></th>";
-	echo "	<th><strong>".__("Help Support AdRotate Banner Manager", 'adrotate')."</strong></th>";
-	echo "</tr>";
-	echo "</thead>";
-
-	echo "<tbody>";
-	echo "<tr>";
-	echo "<td><img src=\"".plugins_url('/images/icon-support.png', __FILE__)."\" alt=\"AdRotate Logo\" width=\"60\" height=\"60\" align=\"left\" style=\"padding:5px;\" /><p>".__("If you need help, or have questions about AdRotate, the fastest way to get your answer is via the Knowledgebase. All popular features to get you started are explained there. If you need an answer right now or the knowledge base does not answer your question you can buy a Priority support ticket as well.", 'adrotate')."</p>"."<p><a href=\"https://support.ajdg.net/knowledgebase.php\" target=\"_blank\" class=\"button-primary\">".__("AdRotate Knowledge Base", 'adrotate')."</a> <a href=\"https://ajdg.solutions/product/support-ticket/\" target=\"_blank\" class=\"button-secondary\">".__("Buy Support Ticket", 'adrotate')."</a></p></td>";
-
-	echo "<td><img src=\"".plugins_url('/images/icon-contact.png', __FILE__)."\" alt=\"AdRotate Banner Manager\" width=\"60\" height=\"60\" align=\"left\" style=\"padding:5px;\" /><p>".__("Arnan needs your help. Please consider writing a review or sharing AdRotate in Social media if you find the plugin useful. Doing so costs you nothing but your endorsement is super helpful to spread the word about AdRotate which in turn helps with continued development of the plugin.", 'adrotate')."</p>"."<p><a class=\"button-primary\" target=\"_blank\" href=\"https://wordpress.org/support/plugin/adrotate/reviews/?rate=5#new-post\">".__("Write review on WordPress.org", 'adrotate')."</a>&nbsp;&nbsp;".__("Thanks a lot in advance!!", 'adrotate')."</p></td>";
-
-	echo "</tr>";
-
-	echo "</tbody>";
-	echo "</table>";
+	return $links;
 }
 
 /*-------------------------------------------------------------
@@ -657,7 +660,6 @@ function adrotate_dashboard_error() {
 	if($adrotate_config['w3caching'] == "Y" AND !defined('W3TC_DYNAMIC_SECURITY')) {
 		$error['w3tc_no_hash'] = __("You have enable caching support but the W3TC_DYNAMIC_SECURITY definition is not set.", 'adrotate')." <a href=\"".admin_url('/admin.php?page=adrotate-settings&tab=misc')."\">".__("How to configure W3 Total Cache", 'adrotate')."</a>.";
 	}
-
 	if($adrotate_config['borlabscache'] == "Y" AND !is_plugin_active('borlabs-cache/borlabs-cache.php')) {
 		$error['borlabs_not_active'] = __("You have enable caching support but Borlabs Cache is not active on your site!", 'adrotate')." <a href=\"".admin_url('/admin.php?page=adrotate-settings&tab=misc')."\">".__("Disable Borlabs Cache Support", 'adrotate')."</a>.";
 	}

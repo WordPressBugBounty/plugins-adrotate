@@ -1,26 +1,13 @@
 <?php
 /* ------------------------------------------------------------------------------------
 *  COPYRIGHT AND TRADEMARK NOTICE
-*  Copyright 2008-2025 Arnan de Gans. All Rights Reserved.
+*  Copyright 2008-2026 Arnan de Gans. All Rights Reserved.
 *  ADROTATE is a registered trademark of Arnan de Gans.
 
 *  COPYRIGHT NOTICES AND ALL THE COMMENTS SHOULD REMAIN INTACT.
 *  By using this code you agree to indemnify Arnan de Gans from any
 *  liability that might arise from its use.
 ------------------------------------------------------------------------------------ */
-
-/*-------------------------------------------------------------
- Name:      adrotate_is_networked
- Purpose:   Determine if AdRotate is network activated
--------------------------------------------------------------*/
-function adrotate_is_networked() {
-	if(!function_exists('is_plugin_active_for_network')) require_once(ABSPATH.'/wp-admin/includes/plugin.php');
-
-	if(is_plugin_active_for_network('adrotate/adrotate.php')) {
-		return true;
-	}
-	return false;
-}
 
 /*-------------------------------------------------------------
  Name:      adrotate_is_human

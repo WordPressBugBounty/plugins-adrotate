@@ -4,22 +4,24 @@ Plugin Name: AdRotate Banner Manager
 Plugin URI: https://ajdg.solutions/product/adrotate-banner-manager/
 Author: Arnan de Gans
 Author URI: https://www.arnan.me/
-Description: Manage all your adverts with all the features you need while keeping things simple.
-Text Domain: adrotate
-Version: 5.15.2
+Description: Everything you need to manage all your ads, banners and affiliate links while keeping things simple.
+Version: 5.17.2
 License: GPLv3
-*/
 
-/*
-* Requires PHP: 7.4
-* Requires CP: 1.0
-* Tested CP: 2.5
-* Premium URI: https://ajdg.solutions/
+Text Domain: adrotate
+Domain Path: /languages
+
+Requires at least: 6.0
+Requires PHP: 8.0
+Requires CP: 1.0
+Tested CP: 2.6
+Premium URI: https://ajdg.solutions/
+GooseUp: compatible
 */
 
 /* ------------------------------------------------------------------------------------
 *  COPYRIGHT AND TRADEMARK NOTICE
-*  Copyright 2008-2025 Arnan de Gans. All Rights Reserved.
+*  Copyright 2008-2026 Arnan de Gans. All Rights Reserved.
 *  ADROTATE is a registered trademark of Arnan de Gans.
 
 *  COPYRIGHT NOTICES AND ALL THE COMMENTS SHOULD REMAIN INTACT.
@@ -28,8 +30,8 @@ License: GPLv3
 ------------------------------------------------------------------------------------ */
 
 /*--- AdRotate values ---------------------------------------*/
-define('ADROTATE_VERSION', 401);
-define('ADROTATE_DB_VERSION', 73);
+define('ADROTATE_VERSION', 408);
+define('ADROTATE_DB_VERSION', 76);
 $adrotate_path = plugin_dir_path(__FILE__);
 /*-----------------------------------------------------------*/
 
@@ -43,7 +45,7 @@ if(function_exists('register_block_type')) include_once($adrotate_path.'/adrotat
 /*-----------------------------------------------------------*/
 
 /*--- Check and Load config ---------------------------------*/
-load_plugin_textdomain('adrotate', false, 'adrotate/language');
+load_plugin_textdomain('adrotate', false, 'adrotate/languages');
 $adrotate_config = get_option("adrotate_config");
 $adrotate_crawlers = get_option("adrotate_crawlers");
 $adrotate_version = get_option("adrotate_version");
@@ -54,7 +56,6 @@ $adrotate_db_version = get_option("adrotate_db_version");
 register_activation_hook(__FILE__, 'adrotate_activate');
 register_deactivation_hook(__FILE__, 'adrotate_deactivate');
 register_uninstall_hook(__FILE__, 'adrotate_uninstall');
-add_action('activated_plugin', 'adrotate_activation_redirect');
 add_action('adrotate_empty_trackerdata', 'adrotate_empty_trackerdata');
 add_action('widgets_init', 'adrotate_widget');
 add_filter('adrotate_apply_photon','adrotate_apply_jetpack_photon');
@@ -88,7 +89,8 @@ if(is_admin()) {
 	add_action('admin_menu', 'adrotate_dashboard');
 	add_action('admin_enqueue_scripts', 'adrotate_dashboard_scripts');
 	add_action('admin_notices','adrotate_notifications_dashboard');
-	add_filter('plugin_action_links_' . plugin_basename( __FILE__ ), 'adrotate_action_links');
+	add_filter('plugin_row_meta', 'adrotate_meta_links', 10, 2);
+
 	/*--- Internal redirects ------------------------------------*/
 	if(isset($_POST['adrotate_generate_submit'])) add_action('init', 'adrotate_generate_input');
 	if(isset($_POST['adrotate_advert_submit'])) add_action('init', 'adrotate_insert_advert');
@@ -96,7 +98,7 @@ if(is_admin()) {
 	if(isset($_POST['adrotate_upload_media'])) add_action('init', 'adrotate_insert_media');
 	if(isset($_POST['adrotate_create_folder'])) add_action('init', 'adrotate_insert_folder');
 	if(isset($_POST['adrotate_action_submit'])) add_action('init', 'adrotate_request_action');
-	if(isset($_POST['adrotate_save_options'])) add_action('init', 'adrotate_options_submit');
+	if(isset($_POST['adrotate_save_options'])) add_action('init', 'adrotate_save_options');
 }
 
 /*-------------------------------------------------------------
@@ -188,10 +190,6 @@ function adrotate_manage() {
 			include('dashboard/publisher/manage-adverts-generator.php');
 		}
 		?>
-		<br class="clear" />
-
-		<?php adrotate_credits(); ?>
-
 	</div>
 <?php
 }
@@ -246,10 +244,6 @@ function adrotate_manage_group() {
 			include('dashboard/publisher/manage-groups-edit.php');
 		}
 		?>
-		<br class="clear" />
-
-		<?php adrotate_credits(); ?>
-
 	</div>
 <?php
 }
@@ -270,11 +264,6 @@ function adrotate_manage_schedules() {
     	<?php
 		include('dashboard/publisher/manage-schedules.php');
 		?>
-
-		<br class="clear" />
-
-		<?php adrotate_credits(); ?>
-
 	</div>
 <?php
 }
@@ -310,11 +299,6 @@ function adrotate_manage_media() {
 		<?php
 		include('dashboard/publisher/media.php');
 		?>
-
-		<br class="clear" />
-
-		<?php adrotate_credits(); ?>
-
 	</div>
 <?php
 }
@@ -359,9 +343,6 @@ function adrotate_statistics() {
 			include('dashboard/publisher/statistics-group.php');
 		}
 		?>
-		<br class="clear" />
-
-		<?php adrotate_credits(); ?>
 	</div>
 <?php
 }
@@ -380,12 +361,6 @@ function adrotate_support() {
 	if(!is_numeric($status)) $status = 0;
 
 	$current_user = wp_get_current_user();
-
-	if(adrotate_is_networked()) {
-		$a = get_site_option('adrotate_activate');
-	} else {
-		$a = get_option('adrotate_activate');
-	}
 	?>
 
 	<div class="wrap">
@@ -481,11 +456,6 @@ function adrotate_options() {
 			include('dashboard/settings/maintenance.php');
 		}
 		?>
-
-		<br class="clear" />
-
-		<?php adrotate_credits(); ?>
-
 	</div>
 <?php
 }
